@@ -51,7 +51,7 @@ class Main (QMainWindow):
 			i = i+1
 
 		self.menuDevices.addSeparator()
-			
+
 		if LOAD_LOCAL_SPOUTCAM and not 'SpoutCam' in devices:
 			#self.menuDevices.addSeparator()
 			action = QAction(self.menuDevices)
@@ -337,16 +337,16 @@ class Main (QMainWindow):
 	########################################
 	def slot_apply_filter_settings (self, btn):
 		self.videowidget.stop()
-		
+
 		self.videowidget.disconnect_filters()
-		
+
 		self.videowidget.apply_filter_settings()
 
 		# rebuild graph
 		#self.open_device(self._current_device_idx, self._current_device_name)
 
 		#self.videowidget.play()
-		
+
 		self.videowidget.reconnect_filters()
 
 		# update infos
@@ -422,9 +422,8 @@ if __name__ == '__main__':
 		def excepthook(etype, e, tb):
 			QMessageBox.critical(None, 'Uncaught Exception', '\n'.join(traceback.format_exception(etype, e, tb)))
 		sys.excepthook = excepthook
-	#qApp.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+	qApp.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 	app = QApplication(sys.argv)
-	#sys.path.append(PATH)
 	os.environ['PYTHONPATH'] = PATH
 	main = Main()
 	sys.exit(app.exec_())
