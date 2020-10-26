@@ -498,7 +498,7 @@
   </action>
   <action name="actionAbout">
    <property name="text">
-    <string>&amp;About QPyCamViewer</string>
+    <string>&amp;About QPyCamRecorder</string>
    </property>
    <property name="toolTip">
     <string>About QPyCamRecorder</string>
