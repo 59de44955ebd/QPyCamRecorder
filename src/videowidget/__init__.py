@@ -111,7 +111,7 @@ class VideoWidget (QWidget):
 					return pin
 
 	########################################
-	# returns pair (out, in) or None
+	# Returns touple (out, in) or None
 	########################################
 	def _get_connected_pins (self, filt):
 		enum = filt.EnumPins()
@@ -159,7 +159,7 @@ class VideoWidget (QWidget):
 		return unk.QueryInterface(interface)
 
 	########################################
-	# saves DIB as BMP file
+	# Saves DIB as BMP file
 	########################################
 	def _save_dib (self, filename, dib):
 		with open(filename, 'wb') as f:
@@ -188,7 +188,7 @@ class VideoWidget (QWidget):
 			return False
 
 	########################################
-	# returns list of filter names
+	# Returns list of filter names
 	########################################
 	def _get_available_filters (self, category_clsid):
 		filter_enumerator = self._system_device_enum.CreateClassEnumerator(GUID(category_clsid), dwFlags=0)
@@ -200,16 +200,17 @@ class VideoWidget (QWidget):
 		return result
 
 	########################################
-	# returns (filter guid, filter name)
+	# Returns (<filter guid>, <filter name>) or None
 	########################################
-	def _get_filter_by_index (self, category_clsid, index):
+	def _get_filter_by_index (self, category_clsid, filter_index):
 		filter_enumerator = self._system_device_enum.CreateClassEnumerator(GUID(category_clsid), dwFlags=0)
 		moniker, fetched = filter_enumerator.RemoteNext(1)
 		i = 0
-		while i != index and fetched > 0:
-			moniker, count = filter_enumerator.RemoteNext(1)
+		while fetched > 0:
+			if i==filter_index:
+				return moniker.RemoteBindToObject(0, 0, IBaseFilter._iid_).QueryInterface(IBaseFilter), self._get_moniker_name(moniker)
+			moniker, fetched = filter_enumerator.RemoteNext(1)
 			i = i + 1
-		return moniker.RemoteBindToObject(0, 0, IBaseFilter._iid_).QueryInterface(IBaseFilter), self._get_moniker_name(moniker)
 
 	########################################
 	#
@@ -627,7 +628,7 @@ class VideoWidget (QWidget):
 		self.update()
 
 	########################################
-	# 
+	#
 	########################################
 	def pause (self):
 		if self._media_control is None:
@@ -636,7 +637,7 @@ class VideoWidget (QWidget):
 		return True
 
 	########################################
-	# 
+	#
 	########################################
 	def play (self):
 		if self._media_control is None:
@@ -692,9 +693,7 @@ class VideoWidget (QWidget):
 		size = windll.kernel32.GlobalSize(lpDib)
 		buf = bytes(size)
 		memmove(buf, lpDib, size)
-		# save DIB as BMP
 		self._save_dib(filename, buf)
-		del buf # ???
 		return True
 
 	########################################
