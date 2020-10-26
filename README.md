@@ -7,10 +7,14 @@ It comes with 2 virtual cameras integrated, [ScreenCam](https://github.com/59de4
 
 **Screenshots**
 
-* [ScreenCam](https://github.com/59de44955ebd/ScreenCam) integrated into QPyCamRecorder:
+* Apple FaceTime HD camera in QPyCamRecorder (Win 10/Boot Camp):
+
+  ![](screenshots/facetime_hd.jpg)
+
+* [ScreenCam](https://github.com/59de44955ebd/ScreenCam) integrated into QPyCamRecorder (Win 8.1):
 
   ![](screenshots/screencam.png)
 
-* [SpoutCam](https://github.com/leadedge/SpoutCam) integrated into QPyCamRecorder:
+* [SpoutCam](https://github.com/leadedge/SpoutCam) integrated into QPyCamRecorder (Win 8.1):
 
   ![](screenshots/spoutcam.jpg)
