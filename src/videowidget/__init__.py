@@ -294,15 +294,15 @@ class VideoWidget (QWidget):
 			return False
 
 		try:
-			#MJPEG Compressor
+			# MJPEG Compressor
 			mjpegCompressor = client.CreateObject(CLSID_MJPEGCompressor, interface = IBaseFilter)
 			self._filter_graph.AddFilter(mjpegCompressor, 'MJPEG Compressor')
 
-			#AVI Muxer
+			# AVI Muxer
 			aviMuxer = client.CreateObject(CLSID_AVIMuxer, interface = IBaseFilter)
 			self._filter_graph.AddFilter(aviMuxer, 'AVI Muxer')
 
-			#File Writer
+			# File Writer
 			fileWriter = client.CreateObject(CLSID_FileWriter, interface = IBaseFilter)
 			self._filter_graph.AddFilter(fileWriter, 'File Writer')
 
@@ -323,10 +323,9 @@ class VideoWidget (QWidget):
 			self._filter_graph.ConnectDirect(pin_mjpeg_out, self._get_pin_by_name(aviMuxer, 'Input'), None)
 			self._filter_graph.ConnectDirect(self._get_pin_by_name(aviMuxer, 'AVI Out'), self._get_pin_by_name(fileWriter, 'in'), None)
 
-			# use best MJPEG quality
+			# Use best MJPEG quality
 			try:
-				# Specifies the quality as a value between 0.0 and 1.0, where 1.0 indicates the best
-				# quality and 0.0 indicates the worst quality.
+				# Specifies the quality as a value between 0.0 and 1.0, where 1.0 indicates the best quality
 				videoCompression = pin_mjpeg_out.QueryInterface(IAMVideoCompression)
 				videoCompression.put_Quality(1.0)
 			except: pass
@@ -440,19 +439,19 @@ class VideoWidget (QWidget):
 			return False
 
 		try:
-			#Tee Filter
+			# Tee Filter
 			teeFilter = client.CreateObject(CLSID_TeeFilter, interface = IBaseFilter)
 			self._filter_graph.AddFilter(teeFilter, 'Tee Filter')
 
-			#MJPEG Compressor
+			# MJPEG Compressor
 			mjpegCompressor = client.CreateObject(CLSID_MJPEGCompressor, interface = IBaseFilter)
 			self._filter_graph.AddFilter(mjpegCompressor, 'MJPEG Compressor')
 
-			#AVI Muxer
+			# AVI Muxer
 			aviMuxer = client.CreateObject(CLSID_AVIMuxer, interface = IBaseFilter)
 			self._filter_graph.AddFilter(aviMuxer, 'AVI Muxer')
 
-			#File Writer
+			# File Writer
 			fileWriter = client.CreateObject(CLSID_FileWriter, interface = IBaseFilter)
 			self._filter_graph.AddFilter(fileWriter, 'File Writer')
 
@@ -487,8 +486,7 @@ class VideoWidget (QWidget):
 
 			# use best MJPEG quality
 			try:
-				# Specifies the quality as a value between 0.0 and 1.0, where 1.0 indicates the best
-				# quality and 0.0 indicates the worst quality.
+				# Specifies the quality as a value between 0.0 and 1.0, where 1.0 indicates the best quality
 				videoCompression = pin_mjpeg_out.QueryInterface(IAMVideoCompression)
 				videoCompression.put_Quality(1.0)
 			except: pass
@@ -537,7 +535,7 @@ class VideoWidget (QWidget):
 			return False
 
 		try:
-			#Tee Filter
+			# Tee Filter
 			teeFilter = client.CreateObject(CLSID_TeeFilter, interface = IBaseFilter)
 			self._filter_graph.AddFilter(teeFilter, 'Tee Filter')
 
@@ -616,7 +614,7 @@ class VideoWidget (QWidget):
 		if self._media_control is not None:
 			self._media_control.Stop()
 
-		# needed for DroidCam?
+		# Needed for DroidCam?
 		if self._filter_graph is not None:
 			enum = self._filter_graph.EnumFilters()
 			while True:
@@ -629,7 +627,7 @@ class VideoWidget (QWidget):
 		self.update()
 
 	########################################
-	# returns HRESULT
+	# 
 	########################################
 	def pause (self):
 		if self._media_control is None:
@@ -638,7 +636,7 @@ class VideoWidget (QWidget):
 		return True
 
 	########################################
-	# returns HRESULT
+	# 
 	########################################
 	def play (self):
 		if self._media_control is None:
@@ -685,7 +683,7 @@ class VideoWidget (QWidget):
 				pass
 
 	########################################
-	# saves as BMP
+	# Saves as BMP
 	########################################
 	def take_snapshot (self, filename):
 		if self._windowless_control is None:
@@ -860,7 +858,6 @@ class VideoWidget (QWidget):
 				self._pin_settings_container.setMinimumWidth(pageInfo.size.cx/self._size_factor)
 				self._pin_settings_container.setMinimumHeight(pageInfo.size.cy/self._size_factor)
 
-				# IPropertyPageSite
 				hr = self._prop_page_pin.SetPageSite(MyPropertyPageSite())
 				r = RECT(0, 0, pageInfo.size.cx, pageInfo.size.cy)
 				hr = self._prop_page_pin.Activate(self._hwnd_pin_settings, byref(r), False)
@@ -938,8 +935,8 @@ class VideoWidget (QWidget):
 				self.mouseDoubleClicked.emit(msg.lParam & 0x0000ffff, msg.lParam >> 16)
 			elif msg.message==WM_LBUTTONDOWN:
 				self.mousePressed.emit(msg.lParam & 0x0000ffff, msg.lParam >> 16)
-		# return true if the event should be filtered, i.e. stopped.
-		# return false to allow normal Qt processing to continue
+		# Return True if the event should be filtered, i.e. stopped.
+		# Return False to allow normal Qt processing to continue
 		return False, 0
 
 	########################################
@@ -961,8 +958,7 @@ class VideoWidget (QWidget):
 	#
 	########################################
 	def reconnect_filters (self):
-		# Render the output pin
+		# Just render the output pin again
 		self._graph_builder.Render(self._cam_pin_out)
-
 		self.set_keepaspectratio()
 		self._media_control.Run()
