@@ -53,18 +53,11 @@ class VideoWidget (QWidget):
 	########################################
 	def __init__(self, parent=None):
 		super().__init__(parent)
-
 		self._reset()
-
 		self._hwnd = self.winId().__int__()
-
-		#self._system_device_enum = SystemDeviceEnum()
 		self._system_device_enum = client.CreateObject(CLSID_SystemDeviceEnum, interface=ICreateDevEnum)
-
 		self._size_factor = self.devicePixelRatio()
-
 		self._fullscreen = False
-
 		self._prop_obj_filter = None
 		self._prop_obj_pin = None
 
@@ -74,15 +67,12 @@ class VideoWidget (QWidget):
 	def _reset(self):
 		self._cam = None
 		self._cam_pin_out = None
-
 		self._windowless_control = None
 		self._filter_config = None
 		self._vmr9 = None
-
 		self._media_control = None
 		self._graph_builder = None
 		self._filter_graph = None
-
 		self._page = None
 
 	########################################
@@ -116,8 +106,7 @@ class VideoWidget (QWidget):
 			d = pin.QueryDirection()
 			if d==direction:
 				try:
-					tmp = pin.ConnectedTo()
-					# Already connected - not the pin we want
+					tmp = pin.ConnectedTo() # Already connected - not the pin we want
 				except:
 					return pin
 
@@ -136,10 +125,10 @@ class VideoWidget (QWidget):
 				except: pass
 
 	########################################
-	#
+	# Given a string GUID, return the GUID laid out in memory suitable
+	# for passing to ctypes
 	########################################
 	def _raw_guid (self, guid):
-		"""Given a string GUID, or a pythoncom IID, return the GUID laid out in memory suitable for passing to ctypes"""
 		return UUID(str(guid)).bytes_le
 
 	########################################
@@ -151,7 +140,7 @@ class VideoWidget (QWidget):
 		factory_ptr = c_void_p(0)
 		hr = my_dll.DllGetClassObject(self._raw_guid(clsid), iclassfactory, byref(factory_ptr))
 		if hr!=S_OK:
-			raise COMError(hr, '', '') # CLASS_E_CLASSNOTAVAILABLE
+			raise COMError(hr, '', '')
 		ptr_icf = POINTER(IClassFactory)(factory_ptr.value)
 		unk = ptr_icf.CreateInstance()
 
@@ -159,11 +148,11 @@ class VideoWidget (QWidget):
 		if clsid==CLSID_ScreenCam or clsid==CLSID_SpoutCam:
 			factory_ptr = c_void_p(0)
 			hr = my_dll.DllGetClassObject(
-					self._raw_guid(CLSID_SpoutCamPropertyPage if clsid==CLSID_SpoutCam else CLSID_ScreenCamPropertyPage), 
-					iclassfactory, 
+					self._raw_guid(CLSID_SpoutCamPropertyPage if clsid==CLSID_SpoutCam else CLSID_ScreenCamPropertyPage),
+					iclassfactory,
 					byref(factory_ptr))
 			if hr!=S_OK:
-				raise COMError(hr, '', '') # CLASS_E_CLASSNOTAVAILABLE
+				raise COMError(hr, '', '')
 			ptr_icf = POINTER(IClassFactory)(factory_ptr.value)
 			unk2 = ptr_icf.CreateInstance()
 			self._page = unk2.QueryInterface(IPropertyPage)
@@ -179,8 +168,6 @@ class VideoWidget (QWidget):
 			header_size = 14
 			file_size = header_size + len(dib)
 			offset = header_size + biSize
-			#hdr.bfOffBits (DWORD): sizeof(BITMAPFILEHEADER) + lpbi->biSize + nColors * sizeof(RGBQUAD);
-			#biSize (DWORD):	Specifies the number of bytes required by the BITMAPINFOHEADER structure
 			header = struct.pack('<2s I 2H I', b'BM', file_size, 0, 0, offset)
 			f.write(header)
 			f.write(dib)
@@ -330,8 +317,7 @@ class VideoWidget (QWidget):
 			try:
 				self._filter_graph.ConnectDirect(self._cam_pin_out, pin_mjpeg_in, None)
 			except:
-				#print('Failed to directly connect cam with MJPEG compressor')
-				# try intelligent connect
+				# Direct connection failed, so try intelligent connect
 				self._graph_builder.Connect(self._cam_pin_out, pin_mjpeg_in)
 
 			self._filter_graph.ConnectDirect(pin_mjpeg_out, self._get_pin_by_name(aviMuxer, 'Input'), None)
@@ -340,8 +326,7 @@ class VideoWidget (QWidget):
 			# use best MJPEG quality
 			try:
 				# Specifies the quality as a value between 0.0 and 1.0, where 1.0 indicates the best
-				# quality and 0.0 indicates the worst quality. If the value is negative, the filter
-				# will use the default quality.
+				# quality and 0.0 indicates the worst quality.
 				videoCompression = pin_mjpeg_out.QueryInterface(IAMVideoCompression)
 				videoCompression.put_Quality(1.0)
 			except: pass
@@ -410,8 +395,7 @@ class VideoWidget (QWidget):
 			try:
 				self._filter_graph.ConnectDirect(self._cam_pin_out, pin_h264Encoder_in, None)
 			except:
-				#print('Failed to directly connect cam with H264 Encoder')
-				# try intelligent connect
+				# Direct connection failed, so try intelligent connect
 				self._graph_builder.Connect(self._cam_pin_out, pin_h264Encoder_in)
 
 			self._filter_graph.ConnectDirect(pin_h264Encoder_out, self._get_unconnected_pin(mp4Muxer, PIN_DIR_IN), None)
@@ -420,8 +404,8 @@ class VideoWidget (QWidget):
 			if idx_audio>=0:
 				audio_source, name = self._get_filter_by_index(CLSID_AudioInputDeviceCategory, idx_audio)
 				self._filter_graph.AddFilter(audio_source, name)
-				pin_audio_out =  self._get_unconnected_pin(audio_source, PIN_DIR_OUT)
-				pin_muxer_in =  self._get_unconnected_pin(mp4Muxer, PIN_DIR_IN)
+				pin_audio_out = self._get_unconnected_pin(audio_source, PIN_DIR_OUT)
+				pin_muxer_in = self._get_unconnected_pin(mp4Muxer, PIN_DIR_IN)
 				try:
 					self._filter_graph.ConnectDirect(pin_audio_out, pin_muxer_in, None)
 				except:
@@ -495,8 +479,7 @@ class VideoWidget (QWidget):
 			try:
 				self._filter_graph.ConnectDirect(pin, pin_mjpeg_in, None)
 			except:
-				#print('Failed to directly connect cam with MJPEG compressor')
-				# try intelligent connect
+				# Direct connection failed, so try intelligent connect
 				self._graph_builder.Connect(pin, pin_mjpeg_in)
 
 			self._filter_graph.ConnectDirect(pin_mjpeg_out, self._get_pin_by_name(aviMuxer, 'Input'), None)
@@ -505,8 +488,7 @@ class VideoWidget (QWidget):
 			# use best MJPEG quality
 			try:
 				# Specifies the quality as a value between 0.0 and 1.0, where 1.0 indicates the best
-				# quality and 0.0 indicates the worst quality. If the value is negative, the filter
-				# will use the default quality.
+				# quality and 0.0 indicates the worst quality.
 				videoCompression = pin_mjpeg_out.QueryInterface(IAMVideoCompression)
 				videoCompression.put_Quality(1.0)
 			except: pass
@@ -598,8 +580,7 @@ class VideoWidget (QWidget):
 			try:
 				self._filter_graph.ConnectDirect(pin, pin_h264Encoder_in, None)
 			except:
-				#print('Failed to directly connect cam with H264 Encoder')
-				# try intelligent connect
+				# Direct connection failed, so try intelligent connect
 				self._graph_builder.Connect(pin, pin_h264Encoder_in)
 
 			self._filter_graph.ConnectDirect(pin_h264Encoder_out, self._get_unconnected_pin(mp4Muxer, PIN_DIR_IN), None)
@@ -635,9 +616,8 @@ class VideoWidget (QWidget):
 		if self._media_control is not None:
 			self._media_control.Stop()
 
-		# needed for DroidCam ???
+		# needed for DroidCam?
 		if self._filter_graph is not None:
-			#print('removing filters...')
 			enum = self._filter_graph.EnumFilters()
 			while True:
 				filt, fetched = enum.Next(1)
@@ -762,8 +742,6 @@ class VideoWidget (QWidget):
 				try:
 					spec_pages = filt.QueryInterface(ISpecifyPropertyPages)
 					cauuid = spec_pages.GetPages()
-					#print('count', cauuid.element_count)
-
 					if cauuid.element_count > 0:
 						ok = False
 						for i in range(cauuid.element_count):
@@ -772,29 +750,26 @@ class VideoWidget (QWidget):
 							if hr==0:
 								ok = True
 								break
-
 						if not ok:
 							windll.ole32.CoTaskMemFree(cauuid.elements)
 							return False
-
 						filterInfo = filt.QueryFilterInfo()
 						filterName = ''.join(map(chr, filterInfo.achName)).rstrip('\0')
 						pFilterUnk = cast(filt, LPUNKNOWN)
 						try:
 							hr = OleCreatePropertyFrame(
 								self.winId().__int__(), # Parent window
-								0, 0,				 # Reserved
-								filterName,		   # Caption for the dialog box
-								1,					# number of objects
-								byref(pFilterUnk),	# Array of object pointers
-								cauuid.element_count, # Number of property pages
-								cauuid.elements,	  # Array of property page CLSIDs
-								0,					# Locale identifier
-								0, None			   # Reserved
+								0, 0,				    # Reserved
+								filterName,		        # Caption for the dialog box
+								1,					    # number of objects
+								byref(pFilterUnk),	    # Array of object pointers
+								cauuid.element_count,   # Number of property pages
+								cauuid.elements,	    # Array of property page CLSIDs
+								0,					    # Locale identifier
+								0, None			        # Reserved
 							)
 							ok = True
 						except:
-							#print('OleCreatePropertyFrame failed')
 							ok = False
 						# Clean up
 						windll.ole32.CoTaskMemFree(cauuid.elements)
@@ -829,21 +804,21 @@ class VideoWidget (QWidget):
 				if not ok:
 					windll.ole32.CoTaskMemFree(cauuid.elements)
 					return False
+
 				self._prop_page_filter = cast(page, POINTER(IPropertyPage))
 				self._prop_obj_filter = self._cam
 				hr = self._prop_page_filter.SetObjects(1, byref(self._prop_obj_filter))
-	
+
 				pageInfo = self._prop_page_filter.GetPageInfo()
-	
-				# Required dimensions of the page's dialog box, in pixels # 210 228
+
+				# Required dimensions of the page's dialog box in pixels
 				self._filter_settings_container.setMinimumWidth(pageInfo.size.cx/self._size_factor)
 				self._filter_settings_container.setMinimumHeight(pageInfo.size.cy/self._size_factor)
-	
-				# IPropertyPageSite
+
 				hr = self._prop_page_filter.SetPageSite(MyPropertyPageSite())
 				r = RECT(0, 0, pageInfo.size.cx, pageInfo.size.cy)
 				hr = self._prop_page_filter.Activate(self._hwnd_filter_settings, byref(r), False)
-	
+
 				windll.ole32.CoTaskMemFree(cauuid.elements)
 				return True
 
@@ -871,7 +846,6 @@ class VideoWidget (QWidget):
 					if hr==0:
 						ok = True
 						break
-
 				if not ok:
 					windll.ole32.CoTaskMemFree(cauuid.elements)
 					return False
@@ -882,12 +856,11 @@ class VideoWidget (QWidget):
 
 				pageInfo = self._prop_page_pin.GetPageInfo()
 
-				# Required dimensions of the page's dialog box, in pixels # 210 228
+				# Required dimensions of the page's dialog box in pixels
 				self._pin_settings_container.setMinimumWidth(pageInfo.size.cx/self._size_factor)
 				self._pin_settings_container.setMinimumHeight(pageInfo.size.cy/self._size_factor)
 
 				# IPropertyPageSite
-				#self._prop_page_pin_site = MyPropertyPageSite()
 				hr = self._prop_page_pin.SetPageSite(MyPropertyPageSite())
 				r = RECT(0, 0, pageInfo.size.cx, pageInfo.size.cy)
 				hr = self._prop_page_pin.Activate(self._hwnd_pin_settings, byref(r), False)
@@ -947,8 +920,6 @@ class VideoWidget (QWidget):
 			filterName = ''.join(map(chr, filterInfo.achName)).rstrip('\0')
 			filters.append([clsid, filterName])
 		return True, filters
-
-	#def __EVENTS (): pass
 
 	########################################
 	#
