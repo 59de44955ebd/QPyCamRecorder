@@ -375,7 +375,7 @@ class Main (QMainWindow):
 	########################################
 	def slot_toogle_fullscreen (self):
 		if self.videowidget.isFullScreen():
-			self.setCentralWidget(self.videowidget)
+			self.centralwidget.layout().insertWidget(0, self.videowidget)
 			self.videowidget.setGeometry(self._geo)
 		else:
 			self._geo = self.videowidget.geometry()
